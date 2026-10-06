@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -171,22 +171,22 @@
       <span class="jp">かな</span>
       <h1>Kana Trainer</h1>
       <!-- Einzige Versionsangabe der App (Semantic Versioning MAJOR.MINOR.PATCH); sw.js erhaelt sie beim Registrieren -->
-      <span class="byline">©Enrico Solcà <span id="appVersion">v1.2.0</span></span>
+      <span class="byline">©Enrico Solcà <span id="appVersion">v1.3.0</span></span>
     </div>
-    <p class="sub">Hiragana und Katakana schnell wiedererkennen</p>
+    <p class="sub">Recognize hiragana and katakana quickly</p>
   </header>
 
   <div class="cols">
     <section class="card train">
       <div class="topline">
-        <span class="eyebrow" id="eyebrow">Zeichenauswahl</span>
-        <button class="link hide" id="backBtn">Training beenden</button>
+        <span class="eyebrow" id="eyebrow">Character selection</span>
+        <button class="link hide" id="backBtn">End training</button>
       </div>
 
       <div class="stage">
         <div id="selectView">
           <div class="jp bigmuted">あ</div>
-          <p class="hint">Markiere in der Tabelle die Zeichen, die du üben willst, und übernimm sie mit <strong>Select</strong> als Trainingssatz.</p>
+          <p class="hint">Mark the characters you want to practice in the table and confirm them with <strong>Select</strong> as your training set.</p>
         </div>
         <div id="readyView" class="hide">
           <div class="jp setprev" id="setPrev"></div>
@@ -204,20 +204,20 @@
           <button class="btn unknown" id="unknownBtn" disabled>Don't know&nbsp;/ Incorrect</button>
           <button class="btn right" id="rightBtn" disabled>Correct</button>
         </div>
-        <p class="keys">Leertaste zeigt die Lösung · Return wertet als richtig</p>
+        <p class="keys">Space shows the answer · Return counts as correct</p>
       </div>
 
-      <button class="btn start hide" id="startBtn">Training starten</button>
+      <button class="btn start hide" id="startBtn">Start training</button>
       <div class="warn" id="warn"></div>
 
       <div class="footer">
         <div class="frow">
-          <span class="val" id="statsText">Noch keine Antworten</span>
-          <button class="link" id="resetStatsBtn">Statistik zurücksetzen</button>
+          <span class="val" id="statsText">No answers yet</span>
+          <button class="link" id="resetStatsBtn">Reset statistics</button>
         </div>
         <div class="frow">
-          <span class="val soft" id="historyText">0 von 92 Zeichen bereits trainiert</span>
-          <button class="link danger" id="masterBtn">Master-Reset</button>
+          <span class="val soft" id="historyText">0 of 92 characters already trained</span>
+          <button class="link danger" id="masterBtn">Master reset</button>
         </div>
       </div>
     </section>
@@ -228,18 +228,18 @@
         <button class="tab" id="tabK">Katakana</button>
       </div>
       <div class="bar">
-        <span class="count" id="countText">0 Zeichen ausgewählt</span>
+        <span class="count" id="countText">0 characters selected</span>
         <div class="btns">
-          <button class="ghost" id="allBtn">Alle auswählen</button>
-          <button class="ghost" id="resetSelBtn">Auswahl zurücksetzen</button>
+          <button class="ghost" id="allBtn">Select all</button>
+          <button class="ghost" id="resetSelBtn">Clear selection</button>
           <button class="primary" id="selectBtn">Select</button>
         </div>
       </div>
       <div class="grid" id="grid"></div>
       <div class="legend">
-        <span class="item"><span class="sw new"></span>noch nie trainiert</span>
-        <span class="item"><span class="sw tr"></span>bereits trainiert</span>
-        <span class="item"><span class="sw on"></span>aktuell ausgewählt</span>
+        <span class="item"><span class="sw new"></span>never trained</span>
+        <span class="item"><span class="sw tr"></span>already trained</span>
+        <span class="item"><span class="sw on"></span>currently selected</span>
       </div>
     </section>
   </div>
@@ -250,7 +250,7 @@
     <h2 id="confirmTitle"></h2>
     <p id="confirmText"></p>
     <div class="row2">
-      <button class="dbtn" id="cancelBtn">Abbrechen</button>
+      <button class="dbtn" id="cancelBtn">Cancel</button>
       <button class="dbtn wipe" id="okBtn"></button>
     </div>
   </div>
@@ -374,7 +374,7 @@ function buildGrid() {
     var lab = document.createElement('button');
     lab.className = 'rowlabel'; lab.textContent = r[0];
     lab.setAttribute('data-focus', 'row:' + r[0]);
-    lab.setAttribute('aria-label', 'Zeile ' + r[0] + ' umschalten');
+    lab.setAttribute('aria-label', 'Toggle row ' + r[0]);
     lab.onclick = function () {
       var keys = r[1].filter(Boolean).map(function (c) { return p + c[0]; });
       setMarks(keys, !keys.every(function (k) { return S.marked[k]; }));
@@ -387,7 +387,7 @@ function buildGrid() {
       b.className = 'cell' + (tr ? ' trained' : '') + (on ? ' sel' : '');
       b.setAttribute('data-focus', key);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
-      if (tr) b.title = on ? 'ausgewählt · bereits trainiert' : 'bereits trainiert';
+      if (tr) b.title = on ? 'selected · already trained' : 'already trained';
       b.innerHTML = (tr ? '<span class="dot"></span>' : '') + '<span class="c jp"></span><span class="r"></span>';
       b.querySelector('.c').textContent = S.tab === 'hiragana' ? c[1] : c[2];
       b.querySelector('.r').textContent = c[0];
@@ -412,9 +412,9 @@ function render() {
     }
   }
 
-  el('eyebrow').textContent = training ? 'Training läuft' : (ready ? 'Trainingssatz bereit' : 'Zeichenauswahl');
+  el('eyebrow').textContent = training ? 'Training in progress' : (ready ? 'Training set ready' : 'Character selection');
   el('backBtn').className = 'link' + (selecting ? ' hide' : '');
-  el('backBtn').textContent = training ? 'Training beenden' : 'Auswahl ändern';
+  el('backBtn').textContent = training ? 'End training' : 'Change selection';
 
   el('selectView').className = selecting ? '' : 'hide';
   el('readyView').className = ready ? '' : 'hide';
@@ -424,7 +424,7 @@ function render() {
 
   if (ready) {
     el('setPrev').textContent = S.set.slice(0, 3).map(function (k) { return info(k).char; }).join(' ') || 'あ';
-    el('readyText').textContent = (S.set.length === 1 ? '1 Zeichen' : S.set.length + ' Zeichen') + ' im Trainingssatz.';
+    el('readyText').textContent = (S.set.length === 1 ? '1 character' : S.set.length + ' characters') + ' in the training set.';
   }
   if (training && S.current) {
     var i = info(S.current);
@@ -436,17 +436,17 @@ function render() {
   }
 
   var n = markedKeys().length;
-  el('countText').textContent = (n === 1 ? '1 Zeichen ausgewählt' : n + ' Zeichen ausgewählt');
+  el('countText').textContent = (n === 1 ? '1 character selected' : n + ' characters selected');
 
   var st = S.stats;
   el('statsText').textContent = st.answered
-    ? st.answered + ' beantwortet · ' + st.correct + ' richtig · ' + st.unknown + ' falsch · '
-      + Math.round(st.correct / st.answered * 100) + ' %'
-    : 'Noch keine Antworten';
+    ? st.answered + ' answered · ' + st.correct + ' correct · ' + st.unknown + ' incorrect · '
+      + Math.round(st.correct / st.answered * 100) + '%'
+    : 'No answers yet';
   el('resetStatsBtn').disabled = !st.answered;
 
   var nt = Object.keys(S.trained).filter(function (k) { return S.trained[k]; }).length;
-  el('historyText').textContent = nt + ' von ' + TOTAL + ' Zeichen bereits trainiert';
+  el('historyText').textContent = nt + ' of ' + TOTAL + ' characters already trained';
 
   el('tabH').className = 'tab' + (S.tab === 'hiragana' ? ' on' : '');
   el('tabK').className = 'tab' + (S.tab === 'katakana' ? ' on' : '');
@@ -486,7 +486,7 @@ el('resetSelBtn').onclick = function () {
 };
 el('selectBtn').onclick = function () {
   var keys = markedKeys();
-  if (!keys.length) { el('warn').textContent = 'Wähle zuerst mindestens ein Zeichen aus.'; return; }
+  if (!keys.length) { el('warn').textContent = 'Select at least one character first.'; return; }
   keys.forEach(function (k) { if (!S.weights[k]) S.weights[k] = 3; });
   S.set = keys; S.phase = 'ready'; S.current = null; S.revealed = false;
   el('warn').textContent = '';
@@ -494,7 +494,7 @@ el('selectBtn').onclick = function () {
   el('startBtn').focus();
 };
 el('startBtn').onclick = function () {
-  if (!S.set.length) { S.phase = 'select'; el('warn').textContent = 'Wähle zuerst mindestens ein Zeichen aus.'; save(); render(); return; }
+  if (!S.set.length) { S.phase = 'select'; el('warn').textContent = 'Select at least one character first.'; save(); render(); return; }
   S.phase = 'training'; show(pick(null));
 };
 el('backBtn').onclick = function () { S.phase = 'select'; S.current = null; S.revealed = false; save(); render(); };
@@ -503,15 +503,15 @@ el('rightBtn').onclick = function () { answer(true); };
 el('unknownBtn').onclick = function () { answer(false); };
 el('resetStatsBtn').onclick = function () {
   if (!S.stats.answered) return;
-  openConfirm('Statistik zurücksetzen',
-    'Möchtest du die Antwortstatistik löschen? Gewichtung und bereits trainierte Zeichen bleiben erhalten.',
-    'Statistik löschen',
+  openConfirm('Reset statistics',
+    'Delete your answer statistics? Weighting and already trained characters are kept.',
+    'Delete statistics',
     function () { S.stats = { answered:0, correct:0, unknown:0 }; save(); render(); });
 };
 el('masterBtn').onclick = function () {
-  openConfirm('Master-Reset',
-    'Möchtest du wirklich alle Trainingsdaten, Auswahlen und Lernfortschritte löschen? Das kann nicht rückgängig gemacht werden.',
-    'Alles zurücksetzen',
+  openConfirm('Master reset',
+    'Really delete all training data, selections and learning progress? This cannot be undone.',
+    'Reset everything',
     function () {
       try { localStorage.removeItem(STORE); } catch (e) {}
       S = blank();
