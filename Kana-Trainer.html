@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Kana Trainer</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f2ee; --surface: #fffefb; --surface-2: #fdfcf9; --sunken: #f2efe8; --soft: #f7f5f0;
+    --line: #e3ded4; --line-2: #d8d2c6; --line-soft: #e6e1d7;
+    --ink: #23211e; --on-ink: #f6f4ef; --ink-2: #4a463e; --ink-3: #6b6659;
+    --muted: #8a857c; --faint: #a8a29a; --disabled: #c2bcb1; --ghost-char: #ddd8cd;
+    --accent: #2f4a45; --accent-text: #2f4a45; --on-accent: #f6f4ef; --setprev: #cfd9d5;
+    --accent-off-bg: #eaefed; --accent-off-line: #d8e0dd; --accent-off-text: #a8b5b1;
+    --trained-bg: #f2f5f4; --trained-line: #d6dedb; --trained-text: #93a8a2; --dot: #7c968f;
+    --sel-text: #b9cbc4; --sel-dot: #e2d9b8;
+    --warn: #9c6b45; --danger: #8a5b3a; --on-danger: #fbf7f2;
+    --shadow: rgba(35,33,30,0.04); --shadow-tab: rgba(35,33,30,0.08);
+    --shadow-dialog: rgba(35,33,30,0.16); --overlay: rgba(35,33,30,0.34);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --bg: #1a1917; --surface: #24221f; --surface-2: #2a2825; --sunken: #1f1d1b; --soft: #2c2a26;
+      --line: #3a3732; --line-2: #48443e; --line-soft: #34312c;
+      --ink: #ece8e1; --on-ink: #1a1917; --ink-2: #d3cec5; --ink-3: #aaa396;
+      --muted: #8f897e; --faint: #7a746c; --disabled: #5c5751; --ghost-char: #3d3a35;
+      --accent: #3d625a; --accent-text: #9cc2b8; --on-accent: #f6f4ef; --setprev: #46605a;
+      --accent-off-bg: #232b29; --accent-off-line: #33403c; --accent-off-text: #5f706b;
+      --trained-bg: #232b29; --trained-line: #35433f; --trained-text: #6f8a83; --dot: #7fa69c;
+      --sel-text: #c3d6cf; --sel-dot: #e2d9b8;
+      --warn: #d39a6c; --danger: #a8693f; --on-danger: #fbf7f2;
+      --shadow: rgba(0,0,0,0.25); --shadow-tab: rgba(0,0,0,0.35);
+      --shadow-dialog: rgba(0,0,0,0.5); --overlay: rgba(0,0,0,0.55);
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  .jp { font-family: "Hiragino Mincho ProN", "YuMincho", "Yu Mincho", "Noto Serif JP", "Noto Serif CJK JP", serif; }
+  button { font-family: inherit; cursor: pointer; }
+  button:disabled { cursor: default; }
+  button:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 18px 56px; display: flex; flex-direction: column; gap: 22px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 4px; }
+  .brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .brand .jp { font-size: 26px; letter-spacing: 0.04em; }
+  .byline { font-size: 12.5px; color: var(--faint); letter-spacing: 0.01em; }
+  h1 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  .sub { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .cols { display: flex; flex-wrap: wrap; gap: 22px; align-items: stretch; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 1px 2px var(--shadow); }
+  .train { flex: 1 1 440px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 18px; min-height: 540px; }
+  .pick { flex: 1 1 520px; min-width: 0; padding: 22px 20px 26px; display: flex; flex-direction: column; gap: 16px; }
+  .eyebrow { font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); }
+  .topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 26px; }
+  .link { background: none; border: none; padding: 4px 2px; font-size: 13px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+  .link:disabled { color: var(--disabled); text-decoration: none; }
+  .stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 8px 0; text-align: center; }
+  .kana { font-size: 155px; line-height: 1.02; letter-spacing: 0.02em; }
+  .solution { height: 44px; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 500; letter-spacing: 0.07em; color: var(--accent-text); }
+  .bigmuted { font-size: 84px; line-height: 1; color: var(--ghost-char); }
+  .setprev { font-size: 74px; line-height: 1; color: var(--setprev); letter-spacing: 0.08em; }
+  .hint { margin: 14px auto 0; font-size: 14.5px; line-height: 1.6; color: var(--muted); max-width: 330px; }
+  .hint strong { font-weight: 600; color: var(--ink-2); }
+  .hint.dark { color: var(--ink-3); }
+  .actions { display: flex; flex-direction: column; gap: 12px; }
+  .answers { display: flex; gap: 12px; }
+  .btn { padding: 20px 12px; border-radius: 13px; font-size: 16.5px; font-weight: 500;
+    border: 1px solid transparent; transition: background 120ms ease, color 120ms ease, border-color 120ms ease; }
+  .btn.reveal { width: 100%; border-color: var(--line-2); background: var(--sunken); color: var(--ink-2); }
+  .btn.reveal:disabled { border-color: var(--line-soft); background: var(--bg); color: var(--disabled); }
+  .btn.unknown { flex: 1; border-color: var(--line-2); background: var(--soft); color: var(--ink-3); }
+  .btn.unknown:disabled { border-color: var(--line-soft); background: var(--surface-2); color: var(--disabled); }
+  .btn.right { flex: 1; border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .btn.right:disabled { border-color: var(--accent-off-line); background: var(--accent-off-bg); color: var(--accent-off-text); }
+  .btn.start { width: 100%; border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
+  .keys { margin: 0; text-align: center; font-size: 12.5px; color: var(--faint); }
+  .warn { min-height: 20px; text-align: center; font-size: 13.5px; color: var(--warn); }
+  .footer { border-top: 1px solid var(--line-soft); padding-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .frow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    font-variant-numeric: tabular-nums; }
+  .frow .val { font-size: 13px; color: var(--muted); }
+  .frow .val.soft { font-size: 12.5px; color: var(--faint); }
+  .frow .link { font-size: 12.5px; }
+  .link.danger { color: var(--faint); }
+  .link.danger:hover { color: var(--warn); }
+  .tabs { display: flex; gap: 6px; padding: 4px; background: var(--sunken); border-radius: 11px; align-self: flex-start; }
+  .tab { padding: 9px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; background: transparent; color: var(--muted); }
+  .tab.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px var(--shadow-tab); }
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .bar .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .count { font-size: 13.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+  .ghost { padding: 8px 14px; border-radius: 9px; border: 1px solid var(--line-2); background: var(--surface); font-size: 13px; color: var(--ink-2); }
+  .primary { padding: 8px 20px; border-radius: 9px; border: 1px solid var(--accent); background: var(--accent);
+    font-size: 13px; font-weight: 500; color: var(--on-accent); }
+  .grid { display: flex; flex-direction: column; gap: 8px; }
+  .row { display: grid; grid-template-columns: 30px repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .rowlabel { border: none; background: none; padding: 0; font-size: 12px; letter-spacing: 0.06em;
+    color: var(--faint); text-align: left; align-self: center; }
+  .cell { position: relative; aspect-ratio: 1 / 1; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 2px; border-radius: 11px; border: 1px solid var(--line-soft);
+    background: var(--surface-2); color: var(--ink); transition: background 120ms ease, border-color 120ms ease; }
+  .cell .c { font-size: 26px; line-height: 1; }
+  .cell .r { font-size: 10.5px; letter-spacing: 0.05em; color: var(--faint); }
+  .cell .dot { position: absolute; top: 7px; right: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--dot); }
+  .cell.trained { border-color: var(--trained-line); background: var(--trained-bg); }
+  .cell.trained .r { color: var(--trained-text); }
+  .cell.sel { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+  .cell.sel .r { color: var(--sel-text); }
+  .cell.sel .dot { background: var(--sel-dot); }
+  .cell.void { border: none; background: transparent; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; padding-top: 2px; font-size: 12px; color: var(--faint); }
+  .legend span.item { display: flex; align-items: center; gap: 7px; }
+  .sw { width: 12px; height: 12px; border-radius: 4px; position: relative; }
+  .sw.new { border: 1px solid var(--line-soft); background: var(--surface-2); }
+  .sw.tr { border: 1px solid var(--trained-line); background: var(--trained-bg); }
+  .sw.tr::after { content: ""; position: absolute; top: 1px; right: 1px; width: 4px; height: 4px; border-radius: 50%; background: var(--dot); }
+  .sw.on { background: var(--accent); }
+  .overlay { position: fixed; inset: 0; background: var(--overlay); display: flex;
+    align-items: center; justify-content: center; padding: 24px; z-index: 40; }
+  .dialog { background: var(--surface); border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: 0 12px 40px var(--shadow-dialog); padding: 28px; max-width: 420px;
+    display: flex; flex-direction: column; gap: 18px; }
+  .dialog h2 { margin: 0; font-size: 17px; font-weight: 600; }
+  .dialog p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-3); }
+  .dialog .row2 { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+  .dbtn { padding: 12px 20px; border-radius: 11px; font-size: 14px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink-2); }
+  .dbtn.wipe { border-color: var(--danger); background: var(--danger); color: var(--on-danger); font-weight: 500; }
+  .hide { display: none !important; }
+  @media (max-width: 600px) { .kana { font-size: 118px; } .train { min-height: 430px; } }
+  @media (max-width: 400px) {
+    .wrap { padding: 20px 10px 40px; gap: 16px; }
+    .cols { gap: 16px; }
+    .train { padding: 18px 16px; }
+    .pick { padding: 16px 12px 20px; }
+    .grid { gap: 5px; }
+    .row { grid-template-columns: 24px repeat(5, minmax(0, 1fr)); gap: 5px; }
+    .cell { border-radius: 9px; }
+    .cell .c { font-size: 21px; }
+    .cell .r { font-size: 9.5px; }
+    .cell .dot { top: 5px; right: 5px; }
+    .kana { font-size: 100px; }
+    .dialog { padding: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="jp">かな</span>
+      <h1>Kana Trainer</h1>
+      <span class="byline">Enrico Solcà 2026</span>
+    </div>
+    <p class="sub">Hiragana und Katakana schnell wiedererkennen</p>
+  </header>
+
+  <div class="cols">
+    <section class="card train">
+      <div class="topline">
+        <span class="eyebrow" id="eyebrow">Zeichenauswahl</span>
+        <button class="link hide" id="backBtn">Training beenden</button>
+      </div>
+
+      <div class="stage">
+        <div id="selectView">
+          <div class="jp bigmuted">あ</div>
+          <p class="hint">Markiere in der Tabelle die Zeichen, die du üben willst, und übernimm sie mit <strong>Select</strong> als Trainingssatz.</p>
+        </div>
+        <div id="readyView" class="hide">
+          <div class="jp setprev" id="setPrev"></div>
+          <p class="hint dark" id="readyText"></p>
+        </div>
+        <div id="trainView" class="hide">
+          <div class="jp kana" id="kana"></div>
+          <div class="solution" id="solution" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="actions hide" id="trainActions">
+        <button class="btn reveal" id="revealBtn">Anzeigen</button>
+        <div class="answers">
+          <button class="btn unknown" id="unknownBtn" disabled>Weiss nicht / Falsch</button>
+          <button class="btn right" id="rightBtn" disabled>Richtig</button>
+        </div>
+        <p class="keys">Leertaste zeigt die Lösung · Return wertet als richtig</p>
+      </div>
+
+      <button class="btn start hide" id="startBtn">Training starten</button>
+      <div class="warn" id="warn"></div>
+
+      <div class="footer">
+        <div class="frow">
+          <span class="val" id="statsText">Noch keine Antworten</span>
+          <button class="link" id="resetStatsBtn">Statistik zurücksetzen</button>
+        </div>
+        <div class="frow">
+          <span class="val soft" id="historyText">0 von 92 Zeichen bereits trainiert</span>
+          <button class="link danger" id="masterBtn">Master-Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card pick" id="pickCard">
+      <div class="tabs">
+        <button class="tab on" id="tabH">Hiragana</button>
+        <button class="tab" id="tabK">Katakana</button>
+      </div>
+      <div class="bar">
+        <span class="count" id="countText">0 Zeichen ausgewählt</span>
+        <div class="btns">
+          <button class="ghost" id="allBtn">Alle auswählen</button>
+          <button class="ghost" id="resetSelBtn">Auswahl zurücksetzen</button>
+          <button class="primary" id="selectBtn">Select</button>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="legend">
+        <span class="item"><span class="sw new"></span>noch nie trainiert</span>
+        <span class="item"><span class="sw tr"></span>bereits trainiert</span>
+        <span class="item"><span class="sw on"></span>aktuell ausgewählt</span>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="overlay hide" id="confirm">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+    <h2 id="confirmTitle"></h2>
+    <p id="confirmText"></p>
+    <div class="row2">
+      <button class="dbtn" id="cancelBtn">Abbrechen</button>
+      <button class="dbtn wipe" id="okBtn"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+var ROWS = [
+  ['a',  [['a','あ','ア'],['i','い','イ'],['u','う','ウ'],['e','え','エ'],['o','お','オ']]],
+  ['k',  [['ka','か','カ'],['ki','き','キ'],['ku','く','ク'],['ke','け','ケ'],['ko','こ','コ']]],
+  ['s',  [['sa','さ','サ'],['shi','し','シ'],['su','す','ス'],['se','せ','セ'],['so','そ','ソ']]],
+  ['t',  [['ta','た','タ'],['chi','ち','チ'],['tsu','つ','ツ'],['te','て','テ'],['to','と','ト']]],
+  ['n',  [['na','な','ナ'],['ni','に','ニ'],['nu','ぬ','ヌ'],['ne','ね','ネ'],['no','の','ノ']]],
+  ['h',  [['ha','は','ハ'],['hi','ひ','ヒ'],['fu','ふ','フ'],['he','へ','ヘ'],['ho','ほ','ホ']]],
+  ['m',  [['ma','ま','マ'],['mi','み','ミ'],['mu','む','ム'],['me','め','メ'],['mo','も','モ']]],
+  ['y',  [['ya','や','ヤ'],null,['yu','ゆ','ユ'],null,['yo','よ','ヨ']]],
+  ['r',  [['ra','ら','ラ'],['ri','り','リ'],['ru','る','ル'],['re','れ','レ'],['ro','ろ','ロ']]],
+  ['w',  [['wa','わ','ワ'],null,null,null,['wo','を','ヲ']]],
+  ['n·', [['n','ん','ン'],null,null,null,null]]
+];
+var STORE = 'kana-trainer-v3', MAXW = 10;
+/* alle gültigen Schlüssel ("h:ka", "k:ka", ...) – Grundlage für die Prüfung gespeicherter Daten */
+var VALID = {};
+ROWS.forEach(function (r) { r[1].forEach(function (c) { if (c) { VALID['h:' + c[0]] = true; VALID['k:' + c[0]] = true; } }); });
+var TOTAL = Object.keys(VALID).length;
+var S;
+
+function blank() {
+  return { tab:'hiragana', marked:{}, set:[], weights:{}, trained:{},
+           stats:{ answered:0, correct:0, unknown:0 },
+           phase:'select', current:null, revealed:false };
+}
+/* gespeicherte Daten nur übernehmen, wenn sie gültig sind */
+function count(v) { return (typeof v === 'number' && isFinite(v) && v >= 0) ? Math.floor(v) : 0; }
+function keyMap(o) {
+  var out = {};
+  if (o && typeof o === 'object') Object.keys(o).forEach(function (k) { if (VALID[k] && o[k] === true) out[k] = true; });
+  return out;
+}
+S = blank();
+try {
+  var raw = localStorage.getItem(STORE);
+  if (raw) {
+    var d = JSON.parse(raw) || {};
+    if (d.tab === 'katakana') S.tab = 'katakana';
+    S.marked = keyMap(d.marked);
+    S.trained = keyMap(d.trained);
+    if (Array.isArray(d.set)) S.set = d.set.filter(function (k, i, a) { return VALID[k] && a.indexOf(k) === i; });
+    if (d.weights && typeof d.weights === 'object') Object.keys(d.weights).forEach(function (k) {
+      var w = d.weights[k];
+      if (VALID[k] && typeof w === 'number' && isFinite(w)) S.weights[k] = Math.min(MAXW, Math.max(1, Math.round(w)));
+    });
+    var st = d.stats || {};
+    S.stats.correct = count(st.correct);
+    S.stats.unknown = count(st.unknown);
+    S.stats.answered = S.stats.correct + S.stats.unknown;
+    /* nach dem Neuladen mit dem gespeicherten Trainingssatz weitermachen */
+    if ((d.phase === 'ready' || d.phase === 'training') && S.set.length) S.phase = 'ready';
+  }
+} catch (e) {}
+
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify({
+    tab:S.tab, marked:S.marked, set:S.set, weights:S.weights, trained:S.trained, stats:S.stats, phase:S.phase })); } catch (e) {}
+}
+function el(id) { return document.getElementById(id); }
+function info(key) {
+  var parts = key.split(':'), found = null;
+  ROWS.forEach(function (r) { r[1].forEach(function (c) { if (c && c[0] === parts[1]) found = c; }); });
+  if (!found) return { char:'', romaji:'' };
+  return { char: parts[0] === 'h' ? found[1] : found[2], romaji: found[0] };
+}
+function markedKeys() { return Object.keys(S.marked).filter(function (k) { return S.marked[k]; }); }
+function allKeys() {
+  var p = S.tab[0] + ':', out = [];
+  ROWS.forEach(function (r) { r[1].forEach(function (c) { if (c) out.push(p + c[0]); }); });
+  return out;
+}
+function setMarks(keys, on) {
+  keys.forEach(function (k) { if (on) S.marked[k] = true; else delete S.marked[k]; });
+  el('warn').textContent = '';
+  save(); render();
+}
+function pick(exclude) {
+  var keys = S.set, pool = keys;
+  if (keys.length > 1 && exclude) pool = keys.filter(function (k) { return k !== exclude; });
+  var total = 0;
+  pool.forEach(function (k) { total += Math.max(1, S.weights[k] || 3); });
+  var r = Math.random() * total;
+  for (var i = 0; i < pool.length; i++) {
+    r -= Math.max(1, S.weights[pool[i]] || 3);
+    if (r <= 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+/* zeigt das nächste Zeichen */
+function show(key) {
+  S.current = key; S.revealed = false;
+  save(); render();
+}
+function reveal() {
+  if (S.phase !== 'training' || S.revealed) return;
+  S.revealed = true; render();
+}
+/* erst eine Antwort zählt das Zeichen dauerhaft als trainiert */
+function answer(correct) {
+  if (S.phase !== 'training' || !S.revealed) return;
+  var key = S.current, w = S.weights[key] || 3;
+  S.weights[key] = correct ? Math.max(1, w - 1) : Math.min(MAXW, w + 2);
+  S.trained[key] = true;
+  S.stats.answered++;
+  if (correct) S.stats.correct++; else S.stats.unknown++;
+  show(pick(key));
+}
+
+function buildGrid() {
+  var grid = el('grid'), p = S.tab[0] + ':';
+  grid.innerHTML = '';
+  ROWS.forEach(function (r) {
+    var row = document.createElement('div');
+    row.className = 'row';
+    var lab = document.createElement('button');
+    lab.className = 'rowlabel'; lab.textContent = r[0];
+    lab.setAttribute('data-focus', 'row:' + r[0]);
+    lab.setAttribute('aria-label', 'Zeile ' + r[0] + ' umschalten');
+    lab.onclick = function () {
+      var keys = r[1].filter(Boolean).map(function (c) { return p + c[0]; });
+      setMarks(keys, !keys.every(function (k) { return S.marked[k]; }));
+    };
+    row.appendChild(lab);
+    r[1].forEach(function (c) {
+      if (!c) { var v = document.createElement('div'); v.className = 'cell void'; row.appendChild(v); return; }
+      var key = p + c[0], on = !!S.marked[key], tr = !!S.trained[key];
+      var b = document.createElement('button');
+      b.className = 'cell' + (tr ? ' trained' : '') + (on ? ' sel' : '');
+      b.setAttribute('data-focus', key);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (tr) b.title = on ? 'ausgewählt · bereits trainiert' : 'bereits trainiert';
+      b.innerHTML = (tr ? '<span class="dot"></span>' : '') + '<span class="c jp"></span><span class="r"></span>';
+      b.querySelector('.c').textContent = S.tab === 'hiragana' ? c[1] : c[2];
+      b.querySelector('.r').textContent = c[0];
+      b.onclick = function () { setMarks([key], !S.marked[key]); };
+      row.appendChild(b);
+    });
+    grid.appendChild(row);
+  });
+}
+
+function render() {
+  var selecting = S.phase === 'select', ready = S.phase === 'ready', training = S.phase === 'training';
+
+  el('pickCard').className = 'card pick' + (selecting ? '' : ' hide');
+  if (selecting) {
+    /* die Tabelle wird neu aufgebaut – Tastaturfokus auf dieselbe Zelle zurücksetzen */
+    var a = document.activeElement, fk = a && a.getAttribute ? a.getAttribute('data-focus') : null;
+    buildGrid();
+    if (fk) {
+      var f = el('grid').querySelector('[data-focus="' + fk + '"]');
+      if (f) f.focus();
+    }
+  }
+
+  el('eyebrow').textContent = training ? 'Training läuft' : (ready ? 'Trainingssatz bereit' : 'Zeichenauswahl');
+  el('backBtn').className = 'link' + (selecting ? ' hide' : '');
+  el('backBtn').textContent = training ? 'Training beenden' : 'Auswahl ändern';
+
+  el('selectView').className = selecting ? '' : 'hide';
+  el('readyView').className = ready ? '' : 'hide';
+  el('trainView').className = training ? '' : 'hide';
+  el('trainActions').className = 'actions' + (training ? '' : ' hide');
+  el('startBtn').className = 'btn start' + (ready ? '' : ' hide');
+
+  if (ready) {
+    el('setPrev').textContent = S.set.slice(0, 3).map(function (k) { return info(k).char; }).join(' ') || 'あ';
+    el('readyText').textContent = (S.set.length === 1 ? '1 Zeichen' : S.set.length + ' Zeichen') + ' im Trainingssatz.';
+  }
+  if (training && S.current) {
+    var i = info(S.current);
+    el('kana').textContent = i.char;
+    el('solution').textContent = S.revealed ? i.romaji : '';
+    el('revealBtn').disabled = S.revealed;
+    el('unknownBtn').disabled = !S.revealed;
+    el('rightBtn').disabled = !S.revealed;
+  }
+
+  var n = markedKeys().length;
+  el('countText').textContent = (n === 1 ? '1 Zeichen ausgewählt' : n + ' Zeichen ausgewählt');
+
+  var st = S.stats;
+  el('statsText').textContent = st.answered
+    ? st.answered + ' beantwortet · ' + st.correct + ' richtig · ' + st.unknown + ' falsch · '
+      + Math.round(st.correct / st.answered * 100) + ' %'
+    : 'Noch keine Antworten';
+  el('resetStatsBtn').disabled = !st.answered;
+
+  var nt = Object.keys(S.trained).filter(function (k) { return S.trained[k]; }).length;
+  el('historyText').textContent = nt + ' von ' + TOTAL + ' Zeichen bereits trainiert';
+
+  el('tabH').className = 'tab' + (S.tab === 'hiragana' ? ' on' : '');
+  el('tabK').className = 'tab' + (S.tab === 'katakana' ? ' on' : '');
+  el('tabH').setAttribute('aria-pressed', S.tab === 'hiragana' ? 'true' : 'false');
+  el('tabK').setAttribute('aria-pressed', S.tab === 'katakana' ? 'true' : 'false');
+}
+
+/* Bestätigungsdialog für Master-Reset und Statistik-Reset */
+var confirmAction = null, confirmReturn = null;
+function confirmOpen() { return !/\bhide\b/.test(el('confirm').className); }
+function openConfirm(title, text, label, action) {
+  el('confirmTitle').textContent = title;
+  el('confirmText').textContent = text;
+  el('okBtn').textContent = label;
+  confirmAction = action;
+  confirmReturn = document.activeElement;
+  el('confirm').className = 'overlay';
+  el('cancelBtn').focus();
+}
+function closeConfirm() {
+  el('confirm').className = 'overlay hide';
+  confirmAction = null;
+  if (confirmReturn && confirmReturn.focus) confirmReturn.focus();
+  confirmReturn = null;
+}
+el('cancelBtn').onclick = closeConfirm;
+el('okBtn').onclick = function () { var action = confirmAction; closeConfirm(); if (action) action(); };
+el('confirm').onclick = function (e) { if (e.target === el('confirm')) closeConfirm(); };  /* Klick neben den Dialog */
+
+el('tabH').onclick = function () { S.tab = 'hiragana'; save(); render(); };
+el('tabK').onclick = function () { S.tab = 'katakana'; save(); render(); };
+el('allBtn').onclick = function () { setMarks(allKeys(), true); };
+el('resetSelBtn').onclick = function () {
+  S.marked = {}; S.set = []; S.current = null; S.revealed = false; S.phase = 'select';
+  el('warn').textContent = '';
+  save(); render();
+};
+el('selectBtn').onclick = function () {
+  var keys = markedKeys();
+  if (!keys.length) { el('warn').textContent = 'Wähle zuerst mindestens ein Zeichen aus.'; return; }
+  keys.forEach(function (k) { if (!S.weights[k]) S.weights[k] = 3; });
+  S.set = keys; S.phase = 'ready'; S.current = null; S.revealed = false;
+  el('warn').textContent = '';
+  save(); render();
+  el('startBtn').focus();
+};
+el('startBtn').onclick = function () {
+  if (!S.set.length) { S.phase = 'select'; el('warn').textContent = 'Wähle zuerst mindestens ein Zeichen aus.'; save(); render(); return; }
+  S.phase = 'training'; show(pick(null));
+};
+el('backBtn').onclick = function () { S.phase = 'select'; S.current = null; S.revealed = false; save(); render(); };
+el('revealBtn').onclick = function () { reveal(); };
+el('rightBtn').onclick = function () { answer(true); };
+el('unknownBtn').onclick = function () { answer(false); };
+el('resetStatsBtn').onclick = function () {
+  if (!S.stats.answered) return;
+  openConfirm('Statistik zurücksetzen',
+    'Möchtest du die Antwortstatistik löschen? Gewichtung und bereits trainierte Zeichen bleiben erhalten.',
+    'Statistik löschen',
+    function () { S.stats = { answered:0, correct:0, unknown:0 }; save(); render(); });
+};
+el('masterBtn').onclick = function () {
+  openConfirm('Master-Reset',
+    'Möchtest du wirklich alle Trainingsdaten, Auswahlen und Lernfortschritte löschen? Das kann nicht rückgängig gemacht werden.',
+    'Alles zurücksetzen',
+    function () {
+      try { localStorage.removeItem(STORE); } catch (e) {}
+      S = blank();
+      el('warn').textContent = '';
+      render();
+    });
+};
+/* ältere Browser kennen :focus-visible nicht – dann wie bisher behandeln */
+function focusVisible(t) { try { return t.matches(':focus-visible'); } catch (e) { return false; } }
+document.addEventListener('keydown', function (e) {
+  /* Dialog offen: Escape schliesst, Tab bleibt im Dialog, sonst normale Tastenbedienung */
+  if (confirmOpen()) {
+    if (e.key === 'Escape') { e.preventDefault(); closeConfirm(); return; }
+    if (e.key === 'Tab') {
+      var first = el('cancelBtn'), last = el('okBtn'), f = document.activeElement;
+      if (f !== first && f !== last) { e.preventDefault(); first.focus(); }
+      else if (e.shiftKey && f === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && f === last) { e.preventDefault(); first.focus(); }
+    }
+    return;
+  }
+  var isSpace = (e.key === ' ' || e.code === 'Space');
+  var isEnter = (e.key === 'Enter' || e.code === 'Enter' || e.code === 'NumpadEnter');
+  if (!isSpace && !isEnter) return;
+  if (S.phase !== 'training' || !S.current) return;  /* ausserhalb des Trainings bedienen die Tasten normal die Buttons */
+  var t = e.target, tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+  if (tag === 'input' || tag === 'textarea' || tag === 'select' || (t && t.isContentEditable)) return;
+  /* per Tastatur fokussierte Buttons ausserhalb der Antwortknöpfe (z. B. "Training beenden") normal auslösen */
+  if (tag === 'button' && !/^(revealBtn|unknownBtn|rightBtn)$/.test(t.id) && focusVisible(t)) return;
+  e.preventDefault();                                /* kein Scrollen, kein Klick auf fokussierten Button */
+  if (e.repeat) return;                              /* gehaltene Taste = nur eine Aktion */
+  if (isSpace) { reveal(); return; }                 /* Leertaste = ausschliesslich Anzeigen */
+  if (S.revealed) answer(true);                      /* Return = Richtig, nur nach Anzeigen */
+});
+
+render();
+</script>
+</body>
+</html>
