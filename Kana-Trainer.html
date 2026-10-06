@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Kana Trainer</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Kana">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
   :root {
     color-scheme: light;
@@ -164,8 +170,8 @@
     <div class="brand">
       <span class="jp">かな</span>
       <h1>Kana Trainer</h1>
-      <!-- Einzige Versionsangabe der App (Semantic Versioning MAJOR.MINOR.PATCH) -->
-      <span class="byline">©Enrico Solcà v1.1.0</span>
+      <!-- Einzige Versionsangabe der App (Semantic Versioning MAJOR.MINOR.PATCH); sw.js erhaelt sie beim Registrieren -->
+      <span class="byline">©Enrico Solcà <span id="appVersion">v1.2.0</span></span>
     </div>
     <p class="sub">Hiragana und Katakana schnell wiedererkennen</p>
   </header>
@@ -542,6 +548,11 @@ document.addEventListener('keydown', function (e) {
 });
 
 render();
+
+/* Offline-Betrieb (Home-Bildschirm); bei file:// nicht verfuegbar */
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js?v=' + encodeURIComponent(el('appVersion').textContent.replace(/^v/, ''))).catch(function () {});
+}
 </script>
 </body>
 </html>
