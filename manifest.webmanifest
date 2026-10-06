@@ -1,7 +1,7 @@
 {
   "name": "Kana Trainer",
   "short_name": "Kana",
-  "lang": "de",
+  "lang": "en",
   "start_url": "Kana-Trainer.html",
   "scope": "./",
   "display": "standalone",
