@@ -17,6 +17,7 @@
     --trained-bg: #f2f5f4; --trained-line: #d6dedb; --trained-text: #93a8a2; --dot: #7c968f;
     --sel-text: #b9cbc4; --sel-dot: #e2d9b8;
     --warn: #9c6b45; --danger: #8a5b3a; --on-danger: #fbf7f2;
+    --btn-bg: #ece7dd; --btn-line: #958c7e; --btn-accent: #2f4a45;
     --shadow: rgba(35,33,30,0.04); --shadow-tab: rgba(35,33,30,0.08);
     --shadow-dialog: rgba(35,33,30,0.16); --overlay: rgba(35,33,30,0.34);
   }
@@ -32,6 +33,7 @@
       --trained-bg: #232b29; --trained-line: #35433f; --trained-text: #6f8a83; --dot: #7fa69c;
       --sel-text: #c3d6cf; --sel-dot: #e2d9b8;
       --warn: #d39a6c; --danger: #a8693f; --on-danger: #fbf7f2;
+      --btn-bg: #36332e; --btn-line: #7a7368; --btn-accent: #3f6a60;
       --shadow: rgba(0,0,0,0.25); --shadow-tab: rgba(0,0,0,0.35);
       --shadow-dialog: rgba(0,0,0,0.5); --overlay: rgba(0,0,0,0.55);
     }
@@ -47,9 +49,9 @@
   .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 18px 56px; display: flex; flex-direction: column; gap: 22px; }
   header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 4px; }
   .brand { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  .brand .jp { font-size: 26px; letter-spacing: 0.04em; }
-  .byline { font-size: 12.5px; color: var(--faint); letter-spacing: 0.01em; }
-  h1 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand .jp { font-size: 30px; letter-spacing: 0.04em; }
+  .byline { font-size: 12.5px; color: var(--faint); letter-spacing: 0.01em; white-space: nowrap; }
+  h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
   .sub { margin: 0; font-size: 13.5px; color: var(--muted); }
   .cols { display: flex; flex-wrap: wrap; gap: 22px; align-items: stretch; }
   .card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 1px 2px var(--shadow); }
@@ -71,13 +73,16 @@
   .actions { display: flex; flex-direction: column; gap: 12px; }
   .answers { display: flex; gap: 12px; }
   .btn { padding: 20px 12px; border-radius: 13px; font-size: 16.5px; font-weight: 500;
-    border: 1px solid transparent; transition: background 120ms ease, color 120ms ease, border-color 120ms ease; }
-  .btn.reveal { width: 100%; border-color: var(--line-2); background: var(--sunken); color: var(--ink-2); }
-  .btn.reveal:disabled { border-color: var(--line-soft); background: var(--bg); color: var(--disabled); }
-  .btn.unknown { flex: 1; border-color: var(--line-2); background: var(--soft); color: var(--ink-3); }
-  .btn.unknown:disabled { border-color: var(--line-soft); background: var(--surface-2); color: var(--disabled); }
-  .btn.right { flex: 1; border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-  .btn.right:disabled { border-color: var(--accent-off-line); background: var(--accent-off-bg); color: var(--accent-off-text); }
+    border: 1px solid transparent; transition: background 120ms ease, color 120ms ease, border-color 120ms ease, filter 120ms ease; }
+  .btn.reveal, .btn.unknown, .btn.right { border-width: 1.5px; font-weight: 600; box-shadow: 0 1px 2px var(--shadow-tab); }
+  .btn.reveal { width: 100%; border-color: var(--btn-line); background: var(--btn-bg); color: var(--ink); }
+  .btn.reveal:disabled { border-color: var(--line-soft); background: var(--bg); color: var(--disabled); box-shadow: none; }
+  .btn.unknown { flex: 1; border-color: var(--btn-line); background: var(--btn-bg); color: var(--ink); }
+  .btn.unknown:disabled { border-color: var(--line-soft); background: var(--surface-2); color: var(--disabled); box-shadow: none; }
+  .btn.right { flex: 1; border-color: var(--btn-accent); background: var(--btn-accent); color: var(--on-accent); }
+  .btn.right:disabled { border-color: var(--accent-off-line); background: var(--accent-off-bg); color: var(--accent-off-text); box-shadow: none; }
+  .btn:not(:disabled):active { filter: brightness(0.9); box-shadow: none; transform: translateY(1px); }
+  @media (hover: hover) { .btn.reveal:not(:disabled):hover, .btn.unknown:not(:disabled):hover { border-color: var(--ink-3); } }
   .btn.start { width: 100%; border-color: var(--ink); background: var(--ink); color: var(--on-ink); }
   .keys { margin: 0; text-align: center; font-size: 12.5px; color: var(--faint); }
   .warn { min-height: 20px; text-align: center; font-size: 13.5px; color: var(--warn); }
@@ -146,6 +151,10 @@
     .cell .dot { top: 5px; right: 5px; }
     .kana { font-size: 100px; }
     .dialog { padding: 22px; }
+    .brand { gap: 4px 10px; }
+    .brand .jp { font-size: 26px; }
+    h1 { font-size: 20px; }
+    .btn { font-size: 15.5px; }
   }
 </style>
 </head>
@@ -155,7 +164,8 @@
     <div class="brand">
       <span class="jp">かな</span>
       <h1>Kana Trainer</h1>
-      <span class="byline">Enrico Solcà 2026</span>
+      <!-- Einzige Versionsangabe der App (Semantic Versioning MAJOR.MINOR.PATCH) -->
+      <span class="byline">©Enrico Solcà v1.1.0</span>
     </div>
     <p class="sub">Hiragana und Katakana schnell wiedererkennen</p>
   </header>
@@ -183,10 +193,10 @@
       </div>
 
       <div class="actions hide" id="trainActions">
-        <button class="btn reveal" id="revealBtn">Anzeigen</button>
+        <button class="btn reveal" id="revealBtn">Show</button>
         <div class="answers">
-          <button class="btn unknown" id="unknownBtn" disabled>Weiss nicht / Falsch</button>
-          <button class="btn right" id="rightBtn" disabled>Richtig</button>
+          <button class="btn unknown" id="unknownBtn" disabled>Don't know&nbsp;/ Incorrect</button>
+          <button class="btn right" id="rightBtn" disabled>Correct</button>
         </div>
         <p class="keys">Leertaste zeigt die Lösung · Return wertet als richtig</p>
       </div>
@@ -527,8 +537,8 @@ document.addEventListener('keydown', function (e) {
   if (tag === 'button' && !/^(revealBtn|unknownBtn|rightBtn)$/.test(t.id) && focusVisible(t)) return;
   e.preventDefault();                                /* kein Scrollen, kein Klick auf fokussierten Button */
   if (e.repeat) return;                              /* gehaltene Taste = nur eine Aktion */
-  if (isSpace) { reveal(); return; }                 /* Leertaste = ausschliesslich Anzeigen */
-  if (S.revealed) answer(true);                      /* Return = Richtig, nur nach Anzeigen */
+  if (isSpace) { reveal(); return; }                 /* Leertaste = ausschliesslich Show */
+  if (S.revealed) answer(true);                      /* Return = Correct, nur nach Show */
 });
 
 render();
