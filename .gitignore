@@ -1,1 +1,5 @@
 .DS_Store
+# eigenes Repo (esolca/kana-trainer-ios)
+Kana-Trainer-iOS/
+# lokale Claude-Daten
+.claude/
