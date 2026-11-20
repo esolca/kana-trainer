@@ -2,6 +2,8 @@
    Die Version kommt als ?v=... von der Seite (Byline in Kana-Trainer.html) und wird hier nicht gepflegt. */
 var VERSION = new URL(self.location.href).searchParams.get('v') || '0';
 var CACHE = 'kana-' + VERSION;
+/* eigene Cache-Namen: "kana-" plus Versionsnummer, z. B. kana-1.3.0 (oder kana-0 ohne Version) */
+var OWN = /^kana-\d+(\.\d+)*$/;
 var FILES = ['./', 'index.html', 'Kana-Trainer.html', 'manifest.webmanifest', 'apple-touch-icon.png', 'icon-512.png'];
 
 self.addEventListener('install', function (e) {
@@ -10,9 +12,11 @@ self.addEventListener('install', function (e) {
   }).then(function () { return self.skipWaiting(); }));
 });
 
+/* nur alte eigene Caches loeschen; andere Apps unter esolca.github.io teilen sich denselben Cache-Speicher */
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(keys.filter(function (k) { return OWN.test(k) && k !== CACHE; })
+      .map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
 
