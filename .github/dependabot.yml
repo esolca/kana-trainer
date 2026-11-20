@@ -1,0 +1,7 @@
+# Hält die gepinnten Actions in .github/workflows aktuell (öffnet bei neuen Versionen einen PR).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
