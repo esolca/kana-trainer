@@ -4,7 +4,7 @@ var VERSION = new URL(self.location.href).searchParams.get('v') || '0';
 var CACHE = 'kana-' + VERSION;
 /* eigene Cache-Namen: "kana-" plus Versionsnummer, z. B. kana-1.3.0 (oder kana-0 ohne Version) */
 var OWN = /^kana-\d+(\.\d+)*$/;
-var FILES = ['./', 'index.html', 'Kana-Trainer.html', 'manifest.webmanifest', 'apple-touch-icon.png', 'icon-512.png'];
+var FILES = ['./', 'index.html', 'Kana-Trainer.html', 'app.js', 'style.css', 'manifest.webmanifest', 'apple-touch-icon.png', 'icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
