@@ -5,6 +5,10 @@ var CACHE = 'kana-' + VERSION;
 /* eigene Cache-Namen: "kana-" plus Versionsnummer, z. B. kana-1.3.0 (oder kana-0 ohne Version) */
 var OWN = /^kana-\d+(\.\d+)*$/;
 var FILES = ['./', 'index.html', 'Kana-Trainer.html', 'app.js', 'style.css', 'manifest.webmanifest', 'apple-touch-icon.png', 'icon-512.png'];
+/* nur diese Adressen (ohne ?Query und #Anker) landen im Cache; so kann kein Link den Cache aufblaehen */
+var KEYS = FILES.map(function (f) { return new URL(f, self.location.href).href; });
+/* so lange wartet die Seite aufs Netz, bevor sie die gespeicherte Fassung nimmt */
+var TIMEOUT = 3000;
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) {
@@ -20,19 +24,38 @@ self.addEventListener('activate', function (e) {
   }).then(function () { return self.clients.claim(); }));
 });
 
-/* Sofort aus dem Cache antworten (funktioniert ohne Netz) und im Hintergrund aktualisieren;
-   eine neue Version ist damit ab dem naechsten Start aktiv. */
+/* Zuerst das Netz (eine neue Version ist so schon beim naechsten Start aktiv), nach TIMEOUT
+   oder ohne Netz die gespeicherte Fassung. Antwortet das Netz spaeter doch, wird der Cache
+   trotzdem aktualisiert. Fremde Adressen und Dateien ausserhalb von FILES gehen direkt ans Netz. */
 self.addEventListener('fetch', function (e) {
   var req = e.request;
-  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  if (req.method !== 'GET') return;
+  var url = new URL(req.url);
+  url.search = '';
+  url.hash = '';
+  var key = url.href;
+  if (KEYS.indexOf(key) < 0) return;
   e.respondWith(caches.open(CACHE).then(function (c) {
-    return c.match(req, { ignoreSearch: true }).then(function (hit) {
-      var net = fetch(req, { cache: 'no-cache' }).then(function (res) {
-        if (res.ok) c.put(req, res.clone());
-        return res;
+    var net = fetch(req, { cache: 'no-cache' }).then(function (res) {
+      if (!res.ok) return res;
+      return c.put(key, res.clone()).then(function () { return res; }, function () { return res; });
+    });
+    e.waitUntil(net.catch(function () {}));
+    return new Promise(function (resolve, reject) {
+      var settled = false;
+      function give(res) { if (!settled) { settled = true; clearTimeout(timer); resolve(res); } }
+      var timer = setTimeout(function () {
+        c.match(key).then(function (hit) { if (hit) give(hit); });
+      }, TIMEOUT);
+      net.then(function (res) {
+        if (res.ok) return give(res);
+        return c.match(key).then(function (hit) { give(hit || res); });
+      }, function (err) {
+        return c.match(key).then(function (hit) {
+          if (hit) return give(hit);
+          if (!settled) { settled = true; clearTimeout(timer); reject(err); }
+        });
       });
-      if (hit) { e.waitUntil(net.catch(function () {})); return hit; }
-      return net;
     });
   }));
 });
